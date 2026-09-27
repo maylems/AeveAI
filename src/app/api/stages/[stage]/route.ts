@@ -18,12 +18,7 @@ export async function POST(
         { status: 400 }
       );
     }
-    const result = await runStage(
-      DnaSchema,
-      "product_dna",
-      DNA_SYSTEM_PROMPT,
-      dnaUserPrompt(idea)
-    );
+    const result = await runStage(DnaSchema, DNA_SYSTEM_PROMPT, dnaUserPrompt(idea));
     return NextResponse.json(result);
   }
 

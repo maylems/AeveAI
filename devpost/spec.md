@@ -18,11 +18,11 @@ app would have to guess at. That distinction is the whole architecture.
 
 **Zod** is a library for describing the shape of data in TypeScript. We use it to
 say "Product DNA is an object with exactly these four fields, all of them text"
-and then check that what came back actually matches. **Structured outputs** is an
-OpenAI feature where you attach that shape to the request, and the model is
-*constrained* to answer in it. The model cannot return a missing field or invent
-an invalid option, because the shape doesn't permit one. So AeveAI never parses
-prose and never guesses.
+and then check that what came back actually matches. **Structured outputs** is a
+Claude feature (`output_config.format`) where you attach that shape to the
+request, and the model is *constrained* to answer in it. The model cannot return
+a missing field or invent an invalid option, because the shape doesn't permit
+one. So AeveAI never parses prose and never guesses.
 
 Each pipeline step is one call: a prompt, a Zod shape, and back comes a typed
 object. There are **three** of them — Product DNA, Reduction, Technical Plan.
@@ -89,7 +89,7 @@ A full run is **three model calls**, plus one per challenge.
 
 ```
 ┌──────────────┐   3 API calls    ┌─────────────────────┐
-│  OpenAI API  │◀────────────────▶│  runStage() choke   │
+│ Anthropic API│◀────────────────▶│  runStage() choke   │
 └──────────────┘   or replay file └──────────┬──────────┘
                                 ┌────────────▼───────────┐
                                 │ Zod shape + rule check │
@@ -109,9 +109,9 @@ Learner-selected. Each choice below was confirmed in the `4-spec` interview.
 |---|---|---|---|
 | Next.js (App Router) | latest stable at build time — **verify** | https://nextjs.org/docs | Already in their stack; one app gives UI *and* a server route, so no separate backend service. |
 | TypeScript | bundled with Next.js | https://www.typescriptlang.org/docs | Already their primary language. |
-| Zod | v4 (native JSON Schema) — **verify exact** | https://zod.dev | Single source of truth for every stage shape; validates at runtime *and* converts to the strict JSON Schema OpenAI needs. |
-| OpenAI Node SDK | latest at build time — **verify** | https://github.com/openai/openai-node | Ships the zod helper that does the schema conversion and response parsing for us. |
-| OpenAI Structured Outputs | requires gpt-4o-2024-08-06 or later | https://developers.openai.com/api/docs/guides/structured-outputs | Guarantees the response matches the schema. Without it we'd be parsing prose. |
+| Zod | v4 (native JSON Schema), `4.6.5` verified | https://zod.dev | Single source of truth for every stage shape; validates at runtime *and* converts to the strict JSON Schema Claude needs. |
+| Anthropic TypeScript SDK | `@anthropic-ai/sdk@0.128.0` verified | https://github.com/anthropics/anthropic-sdk-typescript | Ships `zodOutputFormat()`, the zod helper that does the schema conversion for us. |
+| Claude Structured Outputs | requires Sonnet 4.5+, Opus 4.5+, or Fable 5+ | https://platform.claude.com/docs/build-with-claude/structured-outputs | Guarantees the response matches the schema. Without it we'd be parsing prose. |
 | React | bundled with Next.js | https://react.dev | Block components are React. |
 | CSS Modules or plain CSS custom properties | — | — | No Tailwind, no UI kit. The design direction is specific enough that a design system would cost more than it saves, and a utility framework actively works against the "not a generic AI app" requirement. |
 
@@ -120,12 +120,15 @@ considered for the prototype's data and rejected: the requirement is "survives a
 refresh during the demo," which `localStorage` satisfies completely. Docker would
 be pure overhead for a single-user local app.
 
-**Model:** a current model supporting Structured Outputs. The docs name
-`gpt-4o-2024-08-06` and later as the floor; the current recommended model name is
-changing and I could not verify one to pin here. **Check the model list and pin an
-exact ID at the start of the build.** A cheaper model is acceptable — reasoning
-quality on the Reduction stage is what matters, and that should be checked on the
-first run.
+**Model:** pinned to **`claude-sonnet-5`** — confirmed against
+`platform.claude.com/docs/about-claude/models/overview` as supporting Structured
+Outputs, and described there as "the best combination of speed and intelligence"
+($2/$10 per MTok). Not the cheapest tier (Haiku) or the flagship (Fable); chosen
+the same way the original OpenAI pick was — mid-tier, cost proportional to a
+handful of hackathon runs, reasoning strength still the priority for the
+Reduction stage. **Reasoning quality on the Reduction stage should still be
+checked on the first real run**; escalate to `claude-opus-5-5` if it isn't
+specific enough.
 
 **Cost and rate limits: not verified.** Flagged for day one. At three calls per
 run and a handful of runs, total cost should be negligible on any paid tier.
@@ -135,7 +138,7 @@ replay mode for the recording — so a rate limit should not threaten the demo.
 ## Where It Runs and How Someone Tries It
 - **Runtime:** browser, plus a local Next.js dev server. No other services.
 - **Requirements:** Node.js 20+ (Node 26.7.0 and npm 11.19.0 confirmed present
-  locally), and an OpenAI API key in `.env.local` as `OPENAI_API_KEY`.
+  locally), and an Anthropic API key in `.env.local` as `ANTHROPIC_API_KEY`.
 - **Start:** `npm install` then `npm run dev`, open `http://localhost:3000`.
 - **The key is server-side only.** It's read in the route handler and never sent
   to the browser.
@@ -147,10 +150,10 @@ replay mode for the recording — so a rate limit should not threaten the demo.
   Deployment is optional and is not a substitute for either.
 - Record from `npm run dev` with `AEVE_REPLAY=1`, which replays the recorded
   responses in `src/replays/`.
-- **Warm the schema cache first.** The first request using a *new* schema is slow
-  while OpenAI processes and caches it — typically under 10s, up to a minute for
-  complex schemas. Do one throwaway live run before hitting record, or the
-  recording will open with a slow Product DNA stage.
+- **Warm the schema cache first.** Structured outputs compile each schema into a
+  grammar on first use and cache it for 24 hours; the first request using a *new*
+  schema is slower while that compiles. Do one throwaway live run before hitting
+  record, or the recording will open with a slow Product DNA stage.
 - **Deployment is deferred.** The learner chose not to add deployment work unless
   the implementation is already complete and stable. If it's wanted later, Next.js
   is the easy case — but the app needs a server-side key, so any host must accept
@@ -258,7 +261,7 @@ PRD ref: `prd.md > Previous-Run Comparison`.
 
 ### Stage Runner (server)
 The single choke point for every model call. In order: replay lookup → live
-OpenAI call → refusal check → truncation check → Zod parse → business-rule check.
+Anthropic call → refusal check → truncation check → Zod parse → business-rule check.
 Everything model-related passes through here, which is what makes the failure
 handling uniform and testable.
 PRD ref: all `prd.md > Features and Behavior` behaviors that call the model.
@@ -374,35 +377,41 @@ aeve-ai/
 │   └── replays/                       # recorded API responses (JSON)
 │       └── <idea-slug>/<stage>.json
 ├── devpost/                           # learner profile, scope, prd, spec
-├── .env.example                       # documents OPENAI_API_KEY, no secrets
+├── .env.example                       # documents ANTHROPIC_API_KEY, no secrets
 ├── package.json
 └── README.md                          # setup, key, live vs replay, demo steps
 ```
 
 ## External Services and Dependencies
 
-### OpenAI API
+### Anthropic API
 - **Purpose:** the three pipeline stages plus on-demand challenges.
-- **Call:** Responses API with `text.format` set to a Zod-derived strict schema,
-  or `chat.completions.parse` with `response_format` via the SDK's
-  `zodResponseFormat` helper. Both are supported; pick one at build time.
-- **Auth:** `Authorization: Bearer $OPENAI_API_KEY`, server-side only.
-- **Docs:** https://developers.openai.com/api/docs/guides/structured-outputs
-- **SDK helper:** https://github.com/openai/openai-node/blob/master/src/helpers/zod.ts
+- **Call:** `client.messages.create()` with `output_config.format` set to a
+  Zod-derived JSON Schema via the SDK's `zodOutputFormat()` helper. `runStage.ts`
+  reads `stop_reason` and parses the response itself rather than using the SDK's
+  `messages.parse()` convenience, which throws on a schema mismatch instead of
+  returning null — not a fit for a refusal we want to handle as data.
+- **Auth:** `x-api-key: $ANTHROPIC_API_KEY`, set by the SDK from the environment,
+  server-side only.
+- **Docs:** https://platform.claude.com/docs/build-with-claude/structured-outputs
+- **SDK helper:** https://github.com/anthropics/anthropic-sdk-typescript/blob/main/helpers/zod.ts
 - **Zod JSON Schema:** https://zod.dev/json-schema
 
 **Constraints that shape our schemas** (all confirmed in the docs):
 - **Every field must be `required`.** Optionality is a nullable union.
 - **`additionalProperties: false` on every object.** The SDK helper handles this.
-- **Unsupported keywords include `allOf`, `not`, `if/then/else`, and — the one
-  that matters here — `minItems`, `minLength`, `minimum`, `maximum`.** Business
-  rules therefore cannot live in the schema. See **Verification** below.
+- **Unsupported keywords include `minItems`, `minLength`, `minimum`, `maximum`,
+  and others.** Unlike the OpenAI helper originally evaluated, the Anthropic
+  TypeScript SDK auto-strips these from schemas it derives and folds the
+  constraint into the field's description — but business rules still live in
+  `rules.ts`, not the schema, per the architecture decision. See **Verification**
+  below.
 - **Two failure modes the schema does not cover:** the model may **refuse**
-  (returns a refusal marker instead of the requested shape), and generation may
-  be **truncated** at the token limit, producing output that no longer matches.
-  Both are detected explicitly in `runStage.ts`.
-- **First request with a new schema is slow** (typically <10s, up to ~60s for
-  complex schemas) while it is processed and cached. Warm before recording.
+  (`stop_reason: "refusal"`, a plain-text explanation instead of the requested
+  shape), and generation may be **truncated** at the token limit
+  (`stop_reason: "max_tokens"`). Both are detected explicitly in `runStage.ts`.
+- **First request with a new schema is slower** while its grammar compiles; the
+  compiled grammar is cached for 24 hours from last use. Warm before recording.
 
 ### Local storage (browser)
 Prototype data and run records. No network, no cost, no account.
@@ -412,12 +421,15 @@ How we know the kernel is real, not just demoed. Serves
 `prd.md > Acceptance Criteria — Kernel Integrity`.
 
 ### Day-one build check
-**Verify the actual SDK and Zod behavior around `.min()` / `.max()` before
-building on it.** Zod refinements generate exactly the JSON Schema keywords
-OpenAI strict mode rejects, and the interaction between the current SDK helper
-and the current Zod version is not something to assume. The plan is: keep
-schemas plain, put business rules in `rules.ts`. **Confirm this on the first
-morning of the build, not mid-afternoon.**
+**Verified before building on it.** Zod refinements (`.min()`, `.max()`)
+generate JSON Schema keywords that structured-outputs strict mode doesn't
+support. Installing `@anthropic-ai/sdk@0.128.0` and `zod@4.6.5` and running
+`zodOutputFormat()` against a schema with `.min()`/`.max()` confirmed the SDK
+auto-strips these and moves the constraint into the field description, rather
+than passing them through for the API to reject (which is what the OpenAI
+helper originally evaluated does). The plan is unchanged regardless: keep
+schemas plain, put business rules in `rules.ts` — this was the decision before
+the verification and stays the decision after it.
 
 ### Runtime checks
 - **Plan validation:** at least one data source block. Consumers reference a real
@@ -489,9 +501,13 @@ Engineering judgment, recorded so the build doesn't quietly undo it.
   `Search` and `Dashboard` only consume it. A valid plan must contain at least
   one data source; consumers can't create independent data. This is what makes
   the falsification test meaningful rather than label-swapping.
-- **Next.js + TypeScript, single app, route handler for OpenAI, key server-side,
-  Zod everywhere, no separate backend** — keeps implementation proportional.
-- **OpenAI only, no multi-provider support** — explicitly out of scope.
+- **Next.js + TypeScript, single app, route handler for Anthropic, key
+  server-side, Zod everywhere, no separate backend** — keeps implementation
+  proportional.
+- **Anthropic only, no multi-provider support** — explicitly out of scope.
+  Switched from the originally planned OpenAI during the build (see **Open
+  issues**); the constraint itself — one provider, no abstraction layer — is
+  unchanged.
 - **HTTP response recording/replay for the demo, live path retained** — the
   replayed flow still passes through validation, sequencing, block mapping, and
   prototype assembly.
@@ -516,14 +532,19 @@ only code can enforce** (meaning) — the distinction most likely to be the dura
 lesson from this project.
 
 ### Open issues
-- **Pin the exact model ID and confirm Structured Outputs support** at build time;
-  the current recommended model name was not verified here.
-- **Confirm SDK + Zod behavior on `.min()`/`.max()`** on day one. If the
-  interaction is worse than expected, the fallback is plain Zod schemas with no
-  refinements and all business rules in `rules.ts` — which is the plan anyway, so
-  this is a small risk.
-- **Confirm the current Zod major version's JSON Schema export** behaves as
-  documented.
+- **Resolved during the build: switched provider from OpenAI to Anthropic.** No
+  OpenAI API key was available; the learner has Claude API credits instead. All
+  three model calls, the Zod schemas, the prompts, and the replay/rules/block
+  architecture were unaffected — only `src/lib/anthropic.ts` (was `openai.ts`)
+  and the request/response handling inside `runStage.ts` changed. See
+  **Stack** and **External Services and Dependencies > Anthropic API** above.
+- **Resolved: model pinned to `claude-sonnet-5`**, confirmed against the current
+  model list as supporting Structured Outputs.
+- **Resolved: confirmed SDK + Zod behavior on `.min()`/`.max()`** — the
+  Anthropic SDK strips these automatically rather than rejecting them; the
+  chosen plan (plain schemas, business rules in `rules.ts`) is unchanged.
+- **Resolved: confirmed Zod v4's JSON Schema export** behaves as documented,
+  verified against `zod@4.6.5` with the installed SDK.
 - **Carried from `prd.md > Open Questions`:** whether clicking an example prefills
   or submits, and whether starting a new run warns before discarding a completed
   prototype. Both are low consequence; the spec assumes prefill and no warning.

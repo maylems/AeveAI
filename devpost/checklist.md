@@ -96,3 +96,4 @@ Activity mode: [live app and editor, explicit static fallback, focused alternati
 
 ## Revisions
 
+- Switched the model provider from OpenAI to Anthropic (`claude-sonnet-5`, `@anthropic-ai/sdk@0.128.0`) — the build discovered no OpenAI API key was available, only Claude API credits. Verified Anthropic's Structured Outputs (`output_config.format` + `zodOutputFormat()`) covers the same need; `devpost/spec.md > Stack` and `> External Services and Dependencies` updated accordingly. The three-call architecture, deterministic MVP/Build, replay, block registry, `rules.ts` separation, Zod schemas, prompts, and UI are all unaffected — only `src/lib/anthropic.ts` (was `openai.ts`) and `runStage.ts`'s internals change.

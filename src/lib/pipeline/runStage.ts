@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { zodTextFormat } from "openai/helpers/zod";
-import { getOpenAIClient, MODEL } from "@/lib/openai";
+import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import { getAnthropicClient, MODEL } from "@/lib/anthropic";
 
 export type StageFailureReason = "refusal" | "truncated" | "invalid" | "network";
 
@@ -9,50 +9,67 @@ export type StageResult<T> =
   | { ok: false; reason: StageFailureReason; message: string };
 
 // The single choke point for every model call: live call, then refusal check,
-// then truncation check, then the Zod parse the SDK already ran for us via
-// zodTextFormat. Every stage (dna, reduction, plan, challenge) goes through
-// this, so a schema/prompt pair is all a new stage needs to add.
+// then truncation check, then a Zod parse we run ourselves. We use
+// `messages.create()` rather than the SDK's `messages.parse()` convenience,
+// because `.parse()` throws when the text doesn't match the schema (which is
+// exactly what happens on a refusal, a plain-text response) instead of
+// returning null the way we want to handle it as data.
 export async function runStage<T>(
   schema: z.ZodType<T>,
-  schemaName: string,
   systemPrompt: string,
-  userPrompt: string
+  userPrompt: string,
+  maxTokens = 1024
 ): Promise<StageResult<T>> {
-  const client = getOpenAIClient();
+  const client = getAnthropicClient();
 
-  let response;
+  let message;
   try {
-    response = await client.responses.parse({
+    message = await client.messages.create({
       model: MODEL,
-      input: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      text: { format: zodTextFormat(schema, schemaName) },
+      max_tokens: maxTokens,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userPrompt }],
+      output_config: { format: zodOutputFormat(schema) },
     });
   } catch (error) {
     return {
       ok: false,
       reason: "network",
-      message: error instanceof Error ? error.message : "The request to OpenAI failed.",
+      message: error instanceof Error ? error.message : "The request to Claude failed.",
     };
   }
 
-  if (response.status === "incomplete") {
+  const textBlock = message.content.find((block) => block.type === "text");
+
+  if (message.stop_reason === "refusal") {
+    return {
+      ok: false,
+      reason: "refusal",
+      message: textBlock?.text ?? "Claude declined to respond.",
+    };
+  }
+
+  if (message.stop_reason === "max_tokens" || message.stop_reason === "model_context_window_exceeded") {
     return {
       ok: false,
       reason: "truncated",
-      message: `Generation stopped early (${response.incomplete_details?.reason ?? "unknown reason"}).`,
+      message: `Generation stopped early (${message.stop_reason}).`,
     };
   }
 
-  const message = response.output.find((item) => item.type === "message");
-  const refusal = message?.content.find((part) => part.type === "refusal");
-  if (refusal && refusal.type === "refusal") {
-    return { ok: false, reason: "refusal", message: refusal.refusal };
+  if (!textBlock) {
+    return { ok: false, reason: "invalid", message: "The model didn't return a text response." };
   }
 
-  if (!response.output_parsed) {
+  let json: unknown;
+  try {
+    json = JSON.parse(textBlock.text);
+  } catch {
+    return { ok: false, reason: "invalid", message: "The model's response wasn't valid JSON." };
+  }
+
+  const parsed = schema.safeParse(json);
+  if (!parsed.success) {
     return {
       ok: false,
       reason: "invalid",
@@ -60,5 +77,5 @@ export async function runStage<T>(
     };
   }
 
-  return { ok: true, data: response.output_parsed };
+  return { ok: true, data: parsed.data };
 }
