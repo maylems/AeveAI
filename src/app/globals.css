@@ -80,19 +80,74 @@ button {
   margin: 0 0 var(--space-6);
 }
 
+.idea-input__form {
+  position: relative;
+}
+
 .idea-input__field {
+  display: block;
   width: 100%;
   font-size: 1.25rem;
+  line-height: 1.4;
   padding: var(--space-4);
+  padding-right: calc(var(--space-4) + 40px);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: calc(var(--radius) + 4px);
   background: var(--color-surface);
   color: var(--color-text);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.03);
+  resize: none;
+  overflow: hidden;
+  font-family: inherit;
+  transition:
+    border-color 0.2s ease-out,
+    box-shadow 0.2s ease-out,
+    padding 0.2s ease-out,
+    height 0.15s ease-out;
+}
+
+.idea-input__field:hover {
+  border-color: color-mix(in srgb, var(--color-border) 40%, var(--color-text-muted));
 }
 
 .idea-input__field:focus {
   outline: none;
   border-color: var(--color-accent);
+  padding-top: calc(var(--space-4) + 2px);
+  padding-bottom: calc(var(--space-4) + 2px);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+
+.idea-input__submit {
+  position: absolute;
+  right: var(--space-2);
+  bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 9999px;
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.7);
+  pointer-events: none;
+  transition:
+    opacity 0.15s ease-out,
+    transform 0.15s ease-out;
+}
+
+.idea-input__submit[data-visible="true"] {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.idea-input__submit:hover {
+  opacity: 0.9;
 }
 
 .idea-input__examples {
@@ -113,11 +168,22 @@ button {
   border-radius: var(--radius);
   padding: var(--space-2) var(--space-3);
   cursor: pointer;
+  transition:
+    border-color 0.15s ease-out,
+    color 0.15s ease-out,
+    transform 0.15s ease-out,
+    background 0.15s ease-out;
 }
 
 .idea-input__examples button:hover {
   border-color: var(--color-accent);
   color: var(--color-text);
+  background: color-mix(in srgb, var(--color-accent) 6%, transparent);
+  transform: translateY(-1px);
+}
+
+.idea-input__examples button:active {
+  transform: translateY(0);
 }
 
 .stage-rail {
