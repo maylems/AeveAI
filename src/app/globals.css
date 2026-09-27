@@ -182,3 +182,102 @@ button {
 .dna-fields dd {
   margin: 0;
 }
+
+.stage-panel--collapsed {
+  padding: var(--space-3) var(--space-6);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.stage-panel--collapsed h3 {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  margin: 0;
+}
+
+.stage-panel--collapsed p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.reduction-heading {
+  font-size: 0.8rem;
+  text-transform: none;
+  margin: var(--space-6) 0 var(--space-3);
+}
+
+.reduction-heading--core {
+  color: var(--color-accent);
+}
+
+.reduction-heading--left-out {
+  color: var(--color-text-muted);
+}
+
+.reduction-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.reduction-list--core li {
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+}
+
+.reduction-list--left-out li {
+  border-left: 2px solid var(--color-border);
+  padding: var(--space-2) 0 var(--space-2) var(--space-3);
+  opacity: 0.75;
+}
+
+.reduction-feature-name {
+  font-weight: 600;
+  margin: 0 0 var(--space-1);
+}
+
+.reduction-feature-description {
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.reduction-feature-reason {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  margin: 0 0 var(--space-2);
+}
+
+.challenge button {
+  font-size: 0.8rem;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-1) var(--space-2);
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+
+.challenge button:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.challenge-explanation {
+  font-size: 0.9rem;
+  background: var(--color-bg);
+  border-left: 2px solid var(--color-accent);
+  padding: var(--space-2) var(--space-3);
+  margin: 0;
+}
+
+.challenge-error {
+  font-size: 0.8rem;
+  color: var(--color-accent);
+  margin: var(--space-1) 0 0;
+}

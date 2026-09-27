@@ -13,9 +13,9 @@ Build mode: learn
 
 ## Slices
 
-- [ ] **1. Type an idea, watch a real Product DNA come back**
-  Becomes usable: The empty-state screen (value line, one input, three examples) is live; submitting an idea makes one real OpenAI call and renders Product DNA on screen. A non-product or too-vague idea gets an honest refusal instead of invented DNA.
-  Why now: This is the riskiest unfamiliar surface (OpenAI Structured Outputs + Zod + Next.js route) and the first real step of the kernel. Proving it end to end now, with runnable evidence, means every later stage builds on a call pattern we've actually seen work — not one we assumed.
+- [x] **1. Type an idea, watch a real Product DNA come back**
+  Becomes usable: The empty-state screen (value line, one input, three examples) is live; submitting an idea makes one real Anthropic call and renders Product DNA on screen. A non-product or too-vague idea gets an honest refusal instead of invented DNA.
+  Why now: This is the riskiest unfamiliar surface (Structured Outputs + Zod + Next.js route) and the first real step of the kernel. Proving it end to end now, with runnable evidence, means every later stage builds on a call pattern we've actually seen work — not one we assumed.
   PRD ref: `prd.md > The Core Journey` (steps 1-3), `prd.md > Starting a Run`, `prd.md > Product DNA`, `prd.md > States and Boundaries` (Not a product idea / Too vague to reduce)
   Spec ref: `spec.md > Stack`, `spec.md > File Structure`, `spec.md > Components > Workspace Shell`, `> Idea Input (first state)`, `> Stage Rail`, `> DNA Stage`, `> Stage Runner (server)`, `spec.md > Verification > Day-one build check`, `spec.md > Decisions and Open Issues > Open issues`
   Build: Scaffold the Next.js + TypeScript app per the file structure; `globals.css` tokens (palette, type scale). `Workspace.tsx` owns the run record and stage index. `IdeaInput.tsx` (value line, input, three examples — click prefills). `StageRail.tsx` showing the full `Idea → … → Build` progress. `dna.ts` Zod schema (product type, target users, core problem, fundamental functionality, plus `verdict`: `product` | `notAProduct` | `tooVague`, nullable `response`). `prompts.ts` with the DNA prompt. `runStage.ts` as the single choke point: live OpenAI call (pinned model, `zodTextFormat`), refusal check, truncation check, Zod parse. `/api/stages/[stage]/route.ts` handling `dna` only for now. `DnaStage.tsx` renders the four fields, or the refusal message when the verdict isn't `product`.
@@ -23,11 +23,11 @@ Build mode: learn
   Learner check: Open the app, try the Notion example idea and watch Product DNA appear, then type "build me a sandwich" and see the honest refusal instead.
   Commit: `Bootstrap AeveAI and wire the Product DNA stage`
 
-- [ ] **2. Watch AeveAI cut features and explain why**
+- [x] **2. Watch AeveAI cut features and explain why**
   Becomes usable: After Product DNA, a broad candidate feature set appears and visibly splits into CORE MVP and LEFT OUT, every exclusion with a specific reason. Each exclusion can be challenged for a tradeoff explanation.
   Why now: This is the unique kernel — the centerpiece the whole project exists to prove. It has to land early, not after generic scaffolding, and slice 1 already proved the call pattern it depends on.
   PRD ref: `prd.md > Reduction — the centerpiece`, `prd.md > Challenging a Reduction Decision`, `prd.md > Acceptance Criteria — Kernel Integrity`
-  Spec ref: `spec.md > Components > Reduction Stage`, `spec.md > External Services and Dependencies > OpenAI API`, `spec.md > Verification > Manual falsification test`
+  Spec ref: `spec.md > Components > Reduction Stage`, `spec.md > External Services and Dependencies > Anthropic API`, `spec.md > Verification > Manual falsification test`
   Build: `reduction.ts` Zod schema (candidate features, each `core` or `leftOut`, every `leftOut` entry carries a `reason`). Extend `runStage`/route for the `reduction` stage, given DNA as context. `ReductionStage.tsx`: broad set reveal → CORE MVP / LEFT OUT split, survivors visually dominant, excluded muted/collapsible after reveal, reasons always reachable. `ChallengeButton.tsx` triggers a `challenge` call (feature + its reason as context) and renders the tradeoff explanation; never re-adds or edits.
   Verify (mechanical): Run the Notion idea through DNA → Reduction; confirm the split renders with a specific, non-generic reason per excluded feature; click Challenge on one exclusion and confirm a real explanation returns and nothing changes in CORE MVP/LEFT OUT.
   Learner check: Run the Notion idea, read what got cut and why, then challenge one cut and read AeveAI's case for keeping it out.

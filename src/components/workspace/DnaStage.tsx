@@ -1,11 +1,20 @@
 import type { Dna } from "@/lib/schemas/dna";
 
-export function DnaStage({ dna }: { dna: Dna }) {
+export function DnaStage({ dna, collapsed = false }: { dna: Dna; collapsed?: boolean }) {
   if (dna.verdict !== "product") {
     return (
       <div className="stage-panel">
         <h2>Product DNA</h2>
         <p>{dna.response}</p>
+      </div>
+    );
+  }
+
+  if (collapsed) {
+    return (
+      <div className="stage-panel stage-panel--collapsed">
+        <h3>Product DNA</h3>
+        <p className="mono">{dna.productType}</p>
       </div>
     );
   }
