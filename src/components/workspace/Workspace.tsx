@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { IdeaInput } from "./IdeaInput";
+import { Logo } from "./Logo";
 import { StageRail } from "./StageRail";
 import { DnaStage } from "./DnaStage";
 import { ReductionStage } from "./ReductionStage";
@@ -88,7 +89,7 @@ export function Workspace() {
   if (run.phase === "idea") {
     return (
       <>
-        <span className="brand-mark">AeveAI</span>
+        <Logo />
         <main
           className="workspace--idea"
           style={{
@@ -109,7 +110,7 @@ export function Workspace() {
 
   return (
     <>
-      <span className="brand-mark">AeveAI</span>
+      <Logo />
       <main className="workspace">
         <StageRail current={currentStage} />
 
