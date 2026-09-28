@@ -113,7 +113,7 @@ Learner-selected. Each choice below was confirmed in the `4-spec` interview.
 | Anthropic TypeScript SDK | `@anthropic-ai/sdk@0.128.0` verified | https://github.com/anthropics/anthropic-sdk-typescript | Ships `zodOutputFormat()`, the zod helper that does the schema conversion for us. |
 | Claude Structured Outputs | requires Sonnet 4.5+, Opus 4.5+, or Fable 5+ | https://platform.claude.com/docs/build-with-claude/structured-outputs | Guarantees the response matches the schema. Without it we'd be parsing prose. |
 | React | bundled with Next.js | https://react.dev | Block components are React. |
-| CSS Modules or plain CSS custom properties | — | — | No Tailwind, no UI kit. The design direction is specific enough that a design system would cost more than it saves, and a utility framework actively works against the "not a generic AI app" requirement. |
+| Tailwind CSS v4 + shadcn CLI (`base-nova` preset, Base UI) | `tailwindcss@4.3.3`, `shadcn@4.21.0` | https://tailwindcss.com/docs, https://ui.shadcn.com | Added mid-build, reversing the original "no Tailwind, no UI kit" decision (see `Decisions and Open Issues`). Existing plain-CSS components (`globals.css` custom-property classes) were kept as-is rather than rewritten — both coexist; Tailwind/shadcn is available for new UI. shadcn's default theme tokens (`--background`, `--primary`, `--border`, …) are remapped in `globals.css` to AeveAI's own palette, not shadcn's generic black/white default, so anything built with them still matches `Look and Feel`. |
 
 **No separate backend service, no database, no auth, no Docker.** A database was
 considered for the prototype's data and rejected: the requirement is "survives a
@@ -489,6 +489,10 @@ Engineering judgment, recorded so the build doesn't quietly undo it.
   live variance, and it must be labeled that way in the video and README.
 - **Plain CSS instead of a component library** — the design direction is specific,
   and a library pulls toward the generic look the PRD explicitly rejects.
+  **Reversed mid-build:** the learner asked for Tailwind + shadcn to be added
+  after all. The underlying concern (not looking like a generic AI app) is now
+  handled by remapping shadcn's theme tokens to AeveAI's own palette rather
+  than by avoiding the tooling; see **Stack** and **Open issues**.
 - **No token streaming** — decided at the PRD stage; staged reveal only.
 
 ## Decisions and Open Issues
@@ -545,6 +549,16 @@ lesson from this project.
   chosen plan (plain schemas, business rules in `rules.ts`) is unchanged.
 - **Resolved: confirmed Zod v4's JSON Schema export** behaves as documented,
   verified against `zod@4.6.5` with the installed SDK.
+- **Resolved during the build: added Tailwind CSS v4 + shadcn CLI**, reversing
+  the original "no Tailwind, no UI kit" decision. `npx shadcn@latest init -d`
+  scaffolded `components.json`, `src/lib/utils.ts` (`cn`), and
+  `src/components/ui/`; shadcn's default theme tokens in `globals.css` were
+  remapped to AeveAI's existing palette (off-white/near-black/burnt-orange)
+  instead of left at shadcn's generic black-and-white default. Existing
+  components were verified end to end (DNA → Reduction → Challenge, real
+  Claude calls) after the change and kept on plain CSS rather than rewritten —
+  whether to migrate them to Tailwind/shadcn is still open, and belongs to the
+  learner to decide, not assumed here.
 - **Carried from `prd.md > Open Questions`:** whether clicking an example prefills
   or submits, and whether starting a new run warns before discarding a completed
   prototype. Both are low consequence; the spec assumes prefill and no warning.
