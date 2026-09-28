@@ -1,5 +1,7 @@
 # AeveAI
 
+![AeveAI — the landing screen](docs/screenshot.png)
+
 An AI product-building assistant that takes a vague product idea, decides what
 the first version actually needs, and builds a small working prototype — in
 that order, on purpose.
