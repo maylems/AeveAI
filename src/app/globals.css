@@ -144,15 +144,15 @@ button {
 
 .idea-input {
   width: 100%;
-  max-width: 560px;
+  max-width: 480px;
   text-align: center;
 }
 
 .idea-input__value-line {
   color: #1c1a15;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: 500;
-  margin: 0 0 var(--space-6);
+  margin: 0 0 var(--space-4);
   text-shadow: 0 1px 12px rgb(255 255 255 / 0.35);
 }
 
@@ -163,10 +163,10 @@ button {
 .idea-input__field {
   display: block;
   width: 100%;
-  font-size: 1.25rem;
-  line-height: 1.4;
-  padding: var(--space-4);
-  padding-right: calc(var(--space-4) + 44px);
+  font-size: 0.95rem;
+  line-height: 1.35;
+  padding: 14px 18px;
+  padding-right: 46px;
   border: 1px solid rgb(255 255 255 / 0.6);
   border-radius: 9999px;
   background: var(--color-surface);
@@ -184,7 +184,7 @@ button {
 }
 
 .idea-input__field[data-grown="true"] {
-  border-radius: 28px;
+  border-radius: 22px;
 }
 
 .idea-input__field:hover {
@@ -194,20 +194,22 @@ button {
 .idea-input__field:focus {
   outline: none;
   border-color: var(--color-accent);
-  padding-top: calc(var(--space-4) + 2px);
-  padding-bottom: calc(var(--space-4) + 2px);
+  padding-top: 15px;
+  padding-bottom: 13px;
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 20%, transparent);
 }
 
 .idea-input__submit {
   position: absolute;
-  right: var(--space-2);
-  bottom: var(--space-2);
+  right: 10px;
+  /* Centered on the resting single-line pill (52px tall, so (52-28)/2 = 12px
+     from the bottom) rather than pinned to the bottom edge. */
+  bottom: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   border: none;
   border-radius: 9999px;
   background: #16150f;
@@ -216,8 +218,13 @@ button {
   opacity: 1;
   transform: scale(1);
   transition:
+    bottom 0.15s ease-out,
     opacity 0.15s ease-out,
     transform 0.15s ease-out;
+}
+
+.idea-input__field[data-grown="true"] ~ .idea-input__submit {
+  bottom: 8px;
 }
 
 .idea-input__submit:hover:not(:disabled) {
