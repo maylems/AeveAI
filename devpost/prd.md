@@ -89,13 +89,23 @@ excluded are muted or collapsed after the initial reveal. The eye should land on
 what survived.
 
 ### Explicitly Avoid
-- Purple AI gradients
 - Robot or AI avatars
 - Excessive glassmorphism
 - Huge rounded cards everywhere
 - Generic "AI magic" sparkles
 - A chat interface as the primary interaction
 - Token streaming / raw LLM output shown to the user
+
+**Revised mid-build — the landing screen only:** the learner asked for a warm
+radial gradient hero (blue → pink → orange) behind the first-open input,
+matching a specific visual reference (`aeve.png`), with the input itself as a
+compact centered pill rather than a full-width box. This replaces "Purple AI
+gradients" in the avoid-list above for this one screen — the color and mood
+are deliberately different from a generic purple AI-app gradient, and it's a
+hero treatment for a single empty state, not a decorative pattern repeated
+through the app. **Every later stage (Product DNA onward) keeps the original
+neutral palette, card surfaces, and restrained motion** — the gradient hero
+does not extend past the first-open input.
 
 **Stage progression is simulated, not streamed.** Each stage completes and is
 revealed as a finished unit. The user sees the product thinking evolve, never the

@@ -11,6 +11,7 @@ const MAX_HEIGHT = 200;
 
 export function IdeaInput({ onSubmit }: { onSubmit: (idea: string) => void }) {
   const [value, setValue] = useState("");
+  const [grown, setGrown] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-grow with the content instead of scrolling inside a fixed box —
@@ -30,6 +31,7 @@ export function IdeaInput({ onSubmit }: { onSubmit: (idea: string) => void }) {
     void el.offsetHeight; // commit the untransitioned snap-back before re-enabling
     el.style.transition = "";
     el.style.height = `${next}px`; // now animates from the old height to the real one
+    setGrown(next > MIN_HEIGHT + 4);
   }, [value]);
 
   function submit() {
@@ -56,6 +58,7 @@ export function IdeaInput({ onSubmit }: { onSubmit: (idea: string) => void }) {
         <textarea
           ref={textareaRef}
           className="idea-input__field mono"
+          data-grown={grown}
           value={value}
           onChange={(event) => setValue(event.target.value)}
           onKeyDown={handleKeyDown}
@@ -66,7 +69,7 @@ export function IdeaInput({ onSubmit }: { onSubmit: (idea: string) => void }) {
         <button
           type="submit"
           className="idea-input__submit"
-          data-visible={value.trim().length > 0}
+          disabled={value.trim().length === 0}
           aria-label="Start the run"
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">

@@ -189,12 +189,23 @@ land on what survived, and the excluded set should read as already settled.**
 That single contrast is the product's thesis rendered as a layout decision.
 
 ### Avoid
-Purple AI gradients · robot/AI avatars · excessive glassmorphism · huge rounded
-cards everywhere · generic "AI magic" sparkles · a chat interface as the primary
-interaction · raw token streaming shown to the user.
+Robot/AI avatars · excessive glassmorphism · huge rounded cards everywhere ·
+generic "AI magic" sparkles · a chat interface as the primary interaction ·
+raw token streaming shown to the user.
 
-**Consistency with the stack:** plain CSS custom properties can honor all of
-this. Nothing here requires a component library.
+**Landing-screen exception (mid-build revision):** the first-open input alone
+gets a full-viewport radial gradient background (blue → pink → orange) and a
+compact centered pill shape, matching a specific visual reference the learner
+provided (`aeve.png`) — see `prd.md > Look and Feel`. Implemented as a
+Tailwind utility class (`bg-[radial-gradient(...)]` or an equivalent
+`globals.css` rule) rather than a CSS custom property, since it's a one-off
+hero treatment, not a reusable token. Every stage from Product DNA onward is
+unaffected: neutral palette, card surfaces, 1px borders, restrained motion, as
+originally specified.
+
+**Consistency with the stack:** the rest of the app stays plain CSS custom
+properties; Tailwind/shadcn (added mid-build, see **Stack**) is used for the
+landing gradient and pill and is available for anything built from here on.
 
 ## Components
 Each heading names the PRD behavior it serves, so `5-build` can cite them.
