@@ -1,7 +1,6 @@
 # Local credentials — never commit real secrets
 .env
 .env.*
-!.env.example
 
 # Personal learning context, kept out of commits by default
 /devpost/learner-profile.md

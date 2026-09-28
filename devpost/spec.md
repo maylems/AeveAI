@@ -388,7 +388,6 @@ aeve-ai/
 │   └── replays/                       # recorded API responses (JSON)
 │       └── <idea-slug>/<stage>.json
 ├── devpost/                           # learner profile, scope, prd, spec
-├── .env.example                       # documents ANTHROPIC_API_KEY, no secrets
 ├── package.json
 └── README.md                          # setup, key, live vs replay, demo steps
 ```
