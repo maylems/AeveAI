@@ -72,7 +72,7 @@ export function IdeaInput({ onSubmit }: { onSubmit: (idea: string) => void }) {
           disabled={value.trim().length === 0}
           aria-label="Start the run"
         >
-          <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
             <path
               d="M7 12V2M7 2L2.5 6.5M7 2L11.5 6.5"
               stroke="currentColor"
