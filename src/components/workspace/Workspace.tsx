@@ -87,15 +87,18 @@ export function Workspace() {
 
   if (run.phase === "idea") {
     return (
-      <main
-        className="workspace--idea"
-        style={{
-          backgroundImage:
-            "radial-gradient(125% 125% at 50% 101%, rgba(245,87,2,1) 10.5%, rgba(245,120,2,1) 16%, rgba(245,140,2,1) 17.5%, rgba(245,170,100,1) 25%, rgba(238,174,202,1) 40%, rgba(202,179,214,1) 65%, rgba(148,201,233,1) 100%)",
-        }}
-      >
-        <IdeaInput onSubmit={startRun} />
-      </main>
+      <>
+        <span className="brand-mark">AeveAI</span>
+        <main
+          className="workspace--idea"
+          style={{
+            backgroundImage:
+              "radial-gradient(125% 125% at 50% 101%, rgba(245,87,2,1) 10.5%, rgba(245,120,2,1) 16%, rgba(245,140,2,1) 17.5%, rgba(245,170,100,1) 25%, rgba(238,174,202,1) 40%, rgba(202,179,214,1) 65%, rgba(148,201,233,1) 100%)",
+          }}
+        >
+          <IdeaInput onSubmit={startRun} />
+        </main>
+      </>
     );
   }
 
@@ -105,28 +108,31 @@ export function Workspace() {
       : "reduction";
 
   return (
-    <main className="workspace">
-      <StageRail current={currentStage} />
+    <>
+      <span className="brand-mark">AeveAI</span>
+      <main className="workspace">
+        <StageRail current={currentStage} />
 
-      {run.phase === "dna-loading" && <p className="stage-panel">Reading the idea…</p>}
-      {run.phase === "dna-error" && (
-        <StageError stageLabel="Product DNA" message={run.message} onRetry={() => startRun(run.idea)} />
-      )}
-      {run.phase === "dna-refused" && <DnaStage dna={run.dna} />}
+        {run.phase === "dna-loading" && <p className="stage-panel">Reading the idea…</p>}
+        {run.phase === "dna-error" && (
+          <StageError stageLabel="Product DNA" message={run.message} onRetry={() => startRun(run.idea)} />
+        )}
+        {run.phase === "dna-refused" && <DnaStage dna={run.dna} />}
 
-      {(run.phase === "reduction-loading" ||
-        run.phase === "reduction-error" ||
-        run.phase === "reduction") && <DnaStage dna={run.dna} collapsed />}
+        {(run.phase === "reduction-loading" ||
+          run.phase === "reduction-error" ||
+          run.phase === "reduction") && <DnaStage dna={run.dna} collapsed />}
 
-      {run.phase === "reduction-loading" && <p className="stage-panel">Reducing the scope…</p>}
-      {run.phase === "reduction-error" && (
-        <StageError
-          stageLabel="Reduction"
-          message={run.message}
-          onRetry={() => runReduction(run.idea, run.dna)}
-        />
-      )}
-      {run.phase === "reduction" && <ReductionStage features={run.reduction.features} />}
-    </main>
+        {run.phase === "reduction-loading" && <p className="stage-panel">Reducing the scope…</p>}
+        {run.phase === "reduction-error" && (
+          <StageError
+            stageLabel="Reduction"
+            message={run.message}
+            onRetry={() => runReduction(run.idea, run.dna)}
+          />
+        )}
+        {run.phase === "reduction" && <ReductionStage features={run.reduction.features} />}
+      </main>
+    </>
   );
 }
